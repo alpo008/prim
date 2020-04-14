@@ -44,6 +44,16 @@ $config = [
             ],
         ],
         'db' => $db,
+        'formatter' => [
+            'class' => 'yii\i18n\Formatter',
+            'nullDisplay' => '',
+            'thousandSeparator' => ' ',
+            'dateFormat' => 'php:d.m.Y',
+            'datetimeFormat' => 'php:Y-m-d H:i:s',
+            'timeFormat' => 'php:H:i:s',
+            'defaultTimeZone' => 'Europe/Moscow',
+            'timeZone' => 'Europe/Minsk',
+        ],
         /*
         'urlManager' => [
             'enablePrettyUrl' => true,

@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\cbr\CurrencyDaily;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -20,10 +21,10 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout'],
+                'only' => ['logout', 'index'],
                 'rules' => [
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['logout', 'index'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -61,6 +62,8 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        $currencyDaily = new CurrencyDaily();
+        $dataDaily = $currencyDaily->request();
         return $this->render('index');
     }
 
