@@ -3,7 +3,6 @@
 
 namespace app\models\cbr;
 
-
 use yii\base\BaseObject;
 
 /**
@@ -24,7 +23,7 @@ class CurrencyDaily extends BaseObject
         $this->setUrl();
     }
 
-    function parse($xml, &$return, $path='', $root=false)
+    protected function parse($xml, &$return, $path='', $root=false)
     {
         $children = array();
         if ($xml instanceof \SimpleXMLElement) {
@@ -53,7 +52,7 @@ class CurrencyDaily extends BaseObject
      * @return array
      * @throws \yii\base\InvalidConfigException
      */
-    public function toArray(\SimpleXMLElement $xml)
+    protected function toArray(\SimpleXMLElement $xml)
     {
         $result = [];
         if ($xml instanceof \SimpleXMLElement) {
@@ -69,9 +68,11 @@ class CurrencyDaily extends BaseObject
                     $numCode = (string)$child->NumCode;
                     $charCode = (string)$child->CharCode;
                     $name = (string)$child->Name;
+                    $nominal = (string)$child->Nominal;
                     $value = (string)$child->Value;
-                    $result[] = compact(
-                    'date', 'valuteId', 'numCode', 'charCode', 'name', 'value'
+                    $result[$valuteId] = compact(
+                    'valuteId', 'date', 'valuteId', 'numCode', 'charCode', 'name',
+                            'nominal', 'value'
                     );
                 }
             }

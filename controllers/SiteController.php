@@ -2,8 +2,11 @@
 
 namespace app\controllers;
 
-use app\models\cbr\CurrencyDaily;
+use app\models\search\CurrenciesSearch;
 use Yii;
+use app\models\cbr\CurrencyDaily;
+use app\models\Currency;
+use yii\db\Exception;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
@@ -21,10 +24,10 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'index'],
+                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['logout', 'index'],
+                        'actions' => ['logout'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -62,9 +65,34 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        $searchModel = new CurrenciesSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        return $this->render('index', compact('searchModel', 'dataProvider'));
+    }
+
+    /**
+     * Обновление таблицы
+     */
+    public function actionUpdateTable()
+    {
+        $command = Yii::$app->db->createCommand(sprintf("TRUNCATE TABLE %s", Currency::tableName()));
+        try {
+            $command->execute();
+        } catch (Exception $e) {
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
         $currencyDaily = new CurrencyDaily();
         $dataDaily = $currencyDaily->request();
-        return $this->render('index');
+        if (!empty($dataDaily) && is_array($dataDaily)) {
+            foreach ($dataDaily as $data) {
+                if (!empty($data) && is_array($data)) {
+                    $currency = new Currency($data);
+                    $currency->save();
+                }
+            }
+        }
+        return $this->redirect(['index']);
     }
 
     /**
