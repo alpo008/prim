@@ -18,7 +18,7 @@ use app\models\queries\CurrenciesQuery;
  */
 class Currency extends \yii\db\ActiveRecord
 {
-    const EXPECTED_CURRENCIES_NUMBER = 34;
+    const EXPECTED_CURRENCIES_NUMBER = 33;
 
     /**
      * {@inheritdoc}
@@ -77,5 +77,10 @@ class Currency extends \yii\db\ActiveRecord
     public static function find()
     {
         return new CurrenciesQuery(get_called_class());
+    }
+
+    public static function getLastFilledDate()
+    {
+        return self::find()->max('date');
     }
 }

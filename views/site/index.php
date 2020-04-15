@@ -7,7 +7,7 @@ use yii\widgets\Pjax;
 /* @var $searchModel app\models\search\CurrenciesSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Курсы на сегодня';
+$this->title = 'Курсы валют';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="currencies-index">
@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 [
                     'attribute' => 'date',
                     'value' => function($model) {
-                        return date('Y-m-d', $model->date);
+                        return date('Y-m-d', (int)$model->date);
                     }
                 ]
             ]

@@ -2,10 +2,12 @@
 
 namespace app\controllers;
 
+use app\models\cbr\CurrencyPeriod;
 use app\models\search\CurrenciesSearch;
 use Yii;
 use app\models\cbr\CurrencyDaily;
 use app\models\Currency;
+use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -24,10 +26,10 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout'],
+                'only' => ['logout', 'index', 'update-table', 'empty-table'],
                 'rules' => [
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['logout', 'index', 'update-table', 'empty-table'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -76,21 +78,31 @@ class SiteController extends Controller
      */
     public function actionUpdateTable()
     {
+        $startTimestamp = Currency::getLastFilledDate();
+        $stopTimestamp = CurrencyPeriod::getTomorrowTimestamp();
+        if (!$startTimestamp || !$stopTimestamp) {
+            $currencyPeriod = new CurrencyPeriod();
+        } elseif ($stopTimestamp > $startTimestamp) {
+            $currencyPeriod = new CurrencyPeriod(compact('startTimestamp', 'stopTimestamp'));
+        }
+        if (isset($currencyPeriod)) {
+            $currencyPeriod->getPeriodData();
+        }
+        return $this->redirect(['index']);
+    }
+
+    /**
+     * Полная очистка таблицы
+     *
+     * @return Response
+     */
+    public function actionEmptyTable()
+    {
         $command = Yii::$app->db->createCommand(sprintf("TRUNCATE TABLE %s", Currency::tableName()));
         try {
             $command->execute();
         } catch (Exception $e) {
             Yii::$app->session->setFlash('danger', $e->getMessage());
-        }
-        $currencyDaily = new CurrencyDaily();
-        $dataDaily = $currencyDaily->request();
-        if (!empty($dataDaily) && is_array($dataDaily)) {
-            foreach ($dataDaily as $data) {
-                if (!empty($data) && is_array($data)) {
-                    $currency = new Currency($data);
-                    $currency->save();
-                }
-            }
         }
         return $this->redirect(['index']);
     }

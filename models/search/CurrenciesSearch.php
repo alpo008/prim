@@ -49,6 +49,9 @@ class CurrenciesSearch extends Currency
             'query' => $query,
             'pagination' => [
                 'pageSize' => static::EXPECTED_CURRENCIES_NUMBER,
+            ],
+            'sort' => [
+                'defaultOrder' => ['date'=>SORT_DESC]
             ]
         ]);
 
@@ -67,7 +70,7 @@ class CurrenciesSearch extends Currency
             ->andFilterWhere(['like', 'numCode', $this->numCode])
             ->andFilterWhere(['like', 'charCode', $this->charCode])
             ->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'FROM_UNIXTIME(date, "%Y-%m-%d")', $this->date]);
+            ->andFilterWhere(['like', 'FROM_UNIXTIME(date - 1, "%Y-%m-%d")', $this->date]);
 
         return $dataProvider;
     }

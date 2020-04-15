@@ -8,36 +8,18 @@ namespace app\models\cbr;
  * Trait CBRTrait
  * @package app\models\cbr
  *
- * @property string $url
+ * @property integer $tomorrowTimestamp
  */
 trait CBRTrait
 {
-    private $url;
-
-    public function request()
-    {
-        $xmlResult = file_get_contents($this->url);
-        $simpleXml = simplexml_load_string($xmlResult);
-        return $this->toArray($simpleXml);
-    }
 
     /**
-     * Сеттер для $url
+     * UNIX timestamp на начало сегодняшнего дня
+     *
+     * @return false|int
      */
-    public function setUrl()
+    public static function getTomorrowTimestamp()
     {
-        $dateTime = new \DateTime();
-        $date2 = $date = $dateTime->format('d/m/Y');
-        $date1 = $dateTime->modify('-1 month')->format('d/m/Y');
-        switch ($this->className()) {
-            case 'app\models\cbr\CurrencyDaily' :
-                $url = \Yii::$app->params['currDailyUrl'];
-                $this->url = sprintf('%s?date_req=%s', $url, $date);
-            break;
-            case 'app\models\cbr\CurrPeriodic' :
-                $url = \Yii::$app->params['currPeriodUrl'];
-                $this->url = sprintf('%s?date_req1=%s&date_req2=%s', $url, $date1, $date2);
-            break;
-        }
+        return strtotime("tomorrow") + self::SECONDS_IN_DAY;
     }
 }
