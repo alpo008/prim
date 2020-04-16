@@ -2,12 +2,10 @@
 
 namespace app\controllers;
 
+use Yii;
 use app\models\cbr\CurrencyPeriod;
 use app\models\search\CurrenciesSearch;
-use Yii;
-use app\models\cbr\CurrencyDaily;
 use app\models\Currency;
-use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use yii\filters\AccessControl;
 use yii\web\Controller;

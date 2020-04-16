@@ -117,7 +117,7 @@ class CurrencyPeriod extends BaseObject
                     $charCode = (string)$child->CharCode;
                     $name = (string)$child->Name;
                     $nominal = (string)$child->Nominal;
-                    $value = (string)$child->Value;
+                    $value = str_replace(',', '.', $child->Value);
                     $result[$valuteId] = compact(
                         'valuteId', 'date', 'valuteId', 'numCode', 'charCode', 'name',
                         'nominal', 'value'

@@ -62,15 +62,6 @@ class Currency extends \yii\db\ActiveRecord
     }
 
     /**
-     * @inheritDoc
-     */
-    public function beforeValidate()
-    {
-        $this->value = (float) $this->value;
-        return parent::beforeValidate();
-    }
-
-    /**
      * {@inheritdoc}
      * @return CurrenciesQuery the active query used by this AR class.
      */
@@ -79,8 +70,23 @@ class Currency extends \yii\db\ActiveRecord
         return new CurrenciesQuery(get_called_class());
     }
 
+    /**
+     * UNIX timestamp хронологически последних записей
+     *
+     * @return bool|mixed|string|null
+     */
     public static function getLastFilledDate()
     {
         return self::find()->max('date');
+    }
+
+    /**
+     * UNIX timestamp хронологически первых записей
+     *
+     * @return bool|mixed|string|null
+     */
+    public static function getFirstFilledDate()
+    {
+        return self::find()->min('date');
     }
 }
