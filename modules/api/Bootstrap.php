@@ -19,6 +19,7 @@ class Bootstrap implements BootstrapInterface
         'PUT,PATCH valute' => 'default/update',
         'DELETE valute' => 'default/delete',
     ];
+
     /**
      * @inheritdoc
      */

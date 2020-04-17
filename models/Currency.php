@@ -2,7 +2,6 @@
 
 namespace app\models;
 
-use app\models\queries\CurrenciesQuery;
 
 /**
  * This is the model class for table "currencies".
@@ -59,15 +58,6 @@ class Currency extends \yii\db\ActiveRecord
             'nominal' => 'Номинал',
             'date' => 'Дата публикации курса',
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     * @return CurrenciesQuery the active query used by this AR class.
-     */
-    public static function find()
-    {
-        return new CurrenciesQuery(get_called_class());
     }
 
     /**

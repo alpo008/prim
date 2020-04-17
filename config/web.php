@@ -7,6 +7,7 @@ $config = [
     'id' => 'basic',
     'name' => 'PRIAM',
     'language'=>'ru-RU',
+    'defaultRoute' => 'site/index',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log', 'app\modules\api\Bootstrap'],
     'modules' => [
@@ -49,10 +50,12 @@ $config = [
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
-                ],
-            ],
+                ]
+            ]
         ],
+
         'db' => $db,
+
         'formatter' => [
             'class' => 'yii\i18n\Formatter',
             'nullDisplay' => '',
@@ -67,10 +70,8 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules' => [
-            ],
-        ],
-
+            'rules' => []
+        ]
     ],
     'params' => $params,
 ];
