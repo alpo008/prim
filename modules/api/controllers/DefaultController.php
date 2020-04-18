@@ -11,6 +11,23 @@ use yii\web\Response;
  */
 class DefaultController extends Controller
 {
+
+    /**
+     * @inheritDoc
+     */
+    public function behaviors()
+    {
+        return array_merge(parent::behaviors(), [
+            // For cross-domain AJAX request
+            'corsFilter'  => [
+                'class' => \yii\filters\Cors::className(),
+                'cors'  => [
+                    'Origin' => ['*'],
+                ]
+            ]
+        ]);
+    }
+
     /**
      * Возвращает список доступных валют
      *
