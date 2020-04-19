@@ -3,6 +3,7 @@
 namespace app\modules\api\controllers;
 
 use app\models\Currency;
+use yii\filters\VerbFilter;
 use yii\rest\Controller;
 use yii\web\Response;
 
@@ -24,7 +25,17 @@ class DefaultController extends Controller
                 'cors'  => [
                     'Origin' => ['*'],
                 ]
-            ]
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'index' => ['get', 'head'],
+                    'view' => ['get', 'head'],
+                    'create' => ['post'],
+                    'update' => ['put', 'patch'],
+                    'delete' => ['delete'],
+                ],
+            ],
         ]);
     }
 
