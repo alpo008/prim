@@ -8,6 +8,8 @@ use Yii;
 use app\models\Currency;
 use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
+use yii\httpclient\Client;
+use yii\httpclient\Exception;
 
 /**
  * Class CurrencyPeriod
@@ -16,17 +18,18 @@ use yii\base\InvalidConfigException;
  * @property integer $startTimestamp
  * @property integer $stopTimestamp
  * @property string $url
+ *
+ * @property integer $tomorrowTimestamp
  */
 class CurrencyPeriod extends BaseObject
 {
-    use CBRTrait;
-
-    const DAYS_IN_PERIOD = 31;
+    const DAYS_IN_PERIOD = 45;
     const SECONDS_IN_DAY = 86400;
 
     public $startTimestamp;
     public $stopTimestamp;
     protected $url;
+    public $targetColumns;
 
     /**
      * CurrencyPeriod constructor.
@@ -38,6 +41,7 @@ class CurrencyPeriod extends BaseObject
             $this->stopTimestamp = $this->tomorrowTimestamp;
             $this->startTimestamp = $this->stopTimestamp - (self::DAYS_IN_PERIOD * self::SECONDS_IN_DAY);
         }
+        $this->targetColumns = ['valuteId', 'date', 'numCode', 'charCode', 'nominal', 'name', 'value'];
         parent::__construct($config);
     }
 
@@ -56,12 +60,40 @@ class CurrencyPeriod extends BaseObject
     }
 
     /**
-     * @return \SimpleXMLElement
+     * @return array
      */
     public function request()
     {
-        $xmlResult = file_get_contents($this->url);
-        return simplexml_load_string($xmlResult);
+        /*$response = file_get_contents($this->url);*/
+
+/*      CURL:
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $this->url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        $error = curl_error($ch);
+
+        curl_close($ch);
+        return simplexml_load_string($xmlResult);*/
+
+        $client = new Client();
+        try {
+            $response = $client->createRequest()
+                ->setMethod('GET')
+                ->setUrl($this->url)
+                ->send();
+        } catch (InvalidConfigException $e) {
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        } catch (Exception $e) {
+            Yii::$app->session->setFlash('danger', $e->getMessage());
+        }
+        if (empty($error) && !empty($response)) {
+            return $response->data;
+        } else {
+            return [];
+        }
     }
 
 
@@ -75,18 +107,18 @@ class CurrencyPeriod extends BaseObject
                 $currentTimestamp = $this->startTimestamp;
                 while ($currentTimestamp <= $this->stopTimestamp) {
                     $this->setUrl(date('d/m/Y', $currentTimestamp));
-                    $xmlDaily = $this->request();
                     try {
-                        $dataDaily = $this->toArray($xmlDaily);
-                        if (!empty($dataDaily) && is_array($dataDaily)) {
-                            foreach ($dataDaily as $data) {
-                                if (!empty($data) && is_array($data)) {
-                                    $currency = new Currency($data);
-                                    $currency->save();
-                                }
-                            }
-                        }
+                        $dailyResult = $this->request();
+                        $date = !empty($dailyResult['@attributes']['Date']) ?
+                            Yii::$app->formatter->asTimestamp($dailyResult['@attributes']['Date']) :
+                            $currentTimestamp;
+                        $batchDaily = !empty($dailyResult['Valute']) ?
+                            $this->toBatch($dailyResult['Valute'], $date) :
+                            [];
+                        $this->saveBatch($batchDaily);
                     } catch (InvalidConfigException $e) {
+                        Yii::$app->session->setFlash('danger', $e->getMessage());
+                    } catch (Exception $e) {
                         Yii::$app->session->setFlash('danger', $e->getMessage());
                     }
                     $currentTimestamp += self::SECONDS_IN_DAY;
@@ -96,35 +128,65 @@ class CurrencyPeriod extends BaseObject
     }
 
     /**
-     * @param \SimpleXMLElement $xml
+     * @param array $data
+     * @param string $date
      * @return array
-     * @throws \yii\base\InvalidConfigException
      */
-    public function toArray(\SimpleXMLElement $xml)
+    public function toBatch($data, $date)
     {
         $result = [];
-        if ($xml instanceof \SimpleXMLElement) {
-            try {
-                $date = (string)$xml->attributes()['Date'];
-            } catch (\Exception $e) {
-                $date = \Yii::$app->formatter->asDate(time());
-            }
-            $date = \Yii::$app->formatter->asTimestamp($date);
-            foreach ($xml->children() as $child) {
-                $valuteId = (string) $child->attributes()['ID'];
-                if ($child instanceof \SimpleXMLElement) {
-                    $numCode = (string)$child->NumCode;
-                    $charCode = (string)$child->CharCode;
-                    $name = (string)$child->Name;
-                    $nominal = (string)$child->Nominal;
-                    $value = str_replace(',', '.', $child->Value);
-                    $result[$valuteId] = compact(
-                        'valuteId', 'date', 'valuteId', 'numCode', 'charCode', 'name',
-                        'nominal', 'value'
-                    );
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $valutesData) {
+                if (!empty($valutesData && is_array($valutesData))) {
+                    $entry = [];
+                    foreach ($valutesData as $key => $valuteData) {
+                        if ($key === '@attributes' && !empty($valuteData['ID'])) {
+                            $entry['valuteId'] = $valuteData['ID'];
+                        } elseif ($key === 'Value') {
+                            $entry['value'] = preg_replace('/,/', '.', $valuteData);
+                        } else {
+                            $index = lcfirst($key);
+                            $entry[$index] = $valuteData;
+                        }
+                        $entry['date'] = $date;
+                    }
+                    $result[] = $entry;
                 }
             }
         }
         return $result;
+    }
+
+    /**
+     *
+     * @param array $batch
+     * @return int
+     */
+    private function saveBatch($batch)
+    {
+        if (empty($batch)) {
+            return 0;
+        }
+        $query = Yii::$app->db->createCommand()->batchInsert(
+            Currency::tableName(),
+            $this->targetColumns,
+            $batch
+        );
+        try {
+             $result = $query->execute();
+        } catch (\yii\db\Exception $e) {
+            $result = 0;
+        }
+        return $result;
+    }
+
+    /**
+     * UNIX timestamp на начало сегодняшнего дня
+     *
+     * @return false|int
+     */
+    public static function getTomorrowTimestamp()
+    {
+        return strtotime("tomorrow") + self::SECONDS_IN_DAY;
     }
 }
