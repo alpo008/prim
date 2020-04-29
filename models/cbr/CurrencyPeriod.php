@@ -103,6 +103,7 @@ class CurrencyPeriod extends BaseObject
     public function getPeriodData()
     {
         if (!empty($this->startTimestamp) && !empty($this->stopTimestamp)) {
+            $batch = [];
             if ($this->startTimestamp < $this->stopTimestamp) {
                 $currentTimestamp = $this->startTimestamp;
                 while ($currentTimestamp <= $this->stopTimestamp) {
@@ -115,7 +116,8 @@ class CurrencyPeriod extends BaseObject
                         $batchDaily = !empty($dailyResult['Valute']) ?
                             $this->toBatch($dailyResult['Valute'], $date) :
                             [];
-                        $this->saveBatch($batchDaily);
+                        //$this->saveBatch($batchDaily);
+                        $batch = array_merge($batch, $batchDaily);
                     } catch (InvalidConfigException $e) {
                         Yii::$app->session->setFlash('danger', $e->getMessage());
                     } catch (Exception $e) {
@@ -124,6 +126,7 @@ class CurrencyPeriod extends BaseObject
                     $currentTimestamp += self::SECONDS_IN_DAY;
                 }
             }
+            $this->saveBatch(array_values($batch));
         }
     }
 
@@ -150,7 +153,7 @@ class CurrencyPeriod extends BaseObject
                         }
                         $entry['date'] = $date;
                     }
-                    $result[] = $entry;
+                    $result[$entry['valuteId'] . '_' . $date] = $entry;
                 }
             }
         }
@@ -164,8 +167,9 @@ class CurrencyPeriod extends BaseObject
      */
     private function saveBatch($batch)
     {
+        $result = 0;
         if (empty($batch)) {
-            return 0;
+            return $result;
         }
         $query = Yii::$app->db->createCommand()->batchInsert(
             Currency::tableName(),
@@ -175,7 +179,6 @@ class CurrencyPeriod extends BaseObject
         try {
              $result = $query->execute();
         } catch (\yii\db\Exception $e) {
-            $result = 0;
         }
         return $result;
     }
