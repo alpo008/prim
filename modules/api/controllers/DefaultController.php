@@ -2,6 +2,7 @@
 
 namespace app\modules\api\controllers;
 
+use app\models\cbr\CurrencyPeriod;
 use app\models\Currency;
 use yii\filters\VerbFilter;
 use yii\rest\Controller;
@@ -70,7 +71,7 @@ class DefaultController extends Controller
         if ($this->validate($id, $date_start, $date_end)) {
             $valuteId = $id;
             $timestampStart = \Yii::$app->formatter->asTimestamp($date_start);
-            $timestampEnd = \Yii::$app->formatter->asTimestamp($date_end);
+            $timestampEnd = (int)\Yii::$app->formatter->asTimestamp($date_end) + CurrencyPeriod::timeOffset();
             $models = Currency::find()
                 ->where(compact('valuteId'))
                 ->andWhere(['between', 'date', $timestampStart, $timestampEnd])

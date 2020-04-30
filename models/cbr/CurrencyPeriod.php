@@ -198,12 +198,12 @@ class CurrencyPeriod extends BaseObject
     /**
      * @return int
      */
-    public function timeOffset()
+    public static function timeOffset()
     {
         $localTimeZone = new DateTimeZone(Yii::$app->formatter->defaultTimeZone);
-        $utc = new DateTimeZone('Europe/London');
+        $utcTimeZone = new DateTimeZone('Europe/London');
         try {
-            return $localTimeZone->getOffset(new \DateTime('now', $utc));
+            return $localTimeZone->getOffset(new \DateTime('now', $utcTimeZone));
         } catch (\Exception $e) {
             return 10800;
         }
