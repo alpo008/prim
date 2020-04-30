@@ -10,6 +10,7 @@ use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
 use yii\httpclient\Client;
 use yii\httpclient\Exception;
+use DateTimeZone;
 
 /**
  * Class CurrencyPeriod
@@ -111,7 +112,8 @@ class CurrencyPeriod extends BaseObject
                     try {
                         $dailyResult = $this->request();
                         $date = !empty($dailyResult['@attributes']['Date']) ?
-                            Yii::$app->formatter->asTimestamp($dailyResult['@attributes']['Date']) :
+                            (int) Yii::$app->formatter->asTimestamp($dailyResult['@attributes']['Date']) +
+                            self::timeOffset() :
                             $currentTimestamp;
                         $batchDaily = !empty($dailyResult['Valute']) ?
                             $this->toBatch($dailyResult['Valute'], $date) :
@@ -191,5 +193,19 @@ class CurrencyPeriod extends BaseObject
     public static function getTomorrowTimestamp()
     {
         return strtotime("tomorrow") + self::SECONDS_IN_DAY;
+    }
+
+    /**
+     * @return int
+     */
+    public function timeOffset()
+    {
+        $localTimeZone = new DateTimeZone(Yii::$app->formatter->defaultTimeZone);
+        $utc = new DateTimeZone('Europe/London');
+        try {
+            return $localTimeZone->getOffset(new \DateTime('now', $utc));
+        } catch (\Exception $e) {
+            return 10800;
+        }
     }
 }
