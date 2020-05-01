@@ -81,7 +81,7 @@ class DefaultController extends Controller
             array_walk($models, function (&$entry){
                 unset($entry['id']);
                 $entry['date'] = \Yii::$app->formatter->asDatetime($entry['date'], 'php:Y-m-d');
-            }, $models);
+            });
             return $models;
         } else {
             return ['result' => 'NOK', 'message' => 'Некорректный запрос'];
