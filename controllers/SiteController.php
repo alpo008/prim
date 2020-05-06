@@ -75,7 +75,9 @@ class SiteController extends Controller
      */
     public function actionUpdateTable()
     {
-        $startTimestamp = Currency::getLastFilledDate();
+        if ($startTimestamp = Currency::getLastFilledDate()) {
+            $startTimestamp += CurrencyPeriod::SECONDS_IN_DAY;
+        }
         $stopTimestamp = CurrencyPeriod::getTomorrowTimestamp();
         if (!$startTimestamp || !$stopTimestamp) {
             $currencyPeriod = new CurrencyPeriod();

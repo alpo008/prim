@@ -24,7 +24,7 @@ class DefaultController extends Controller
             'corsFilter'  => [
                 'class' => \yii\filters\Cors::className(),
                 'cors'  => [
-                    'Origin' => ['*'],
+                    'Origin' => ['*']
                 ]
             ],
             'verbs' => [
@@ -34,9 +34,9 @@ class DefaultController extends Controller
                     'view' => ['get', 'head'],
                     'create' => ['post'],
                     'update' => ['put', 'patch'],
-                    'delete' => ['delete'],
-                ],
-            ],
+                    'delete' => ['delete']
+                ]
+            ]
         ]);
     }
 

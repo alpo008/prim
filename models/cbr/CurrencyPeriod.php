@@ -24,7 +24,7 @@ use DateTimeZone;
  */
 class CurrencyPeriod extends BaseObject
 {
-    const DAYS_IN_PERIOD = 45;
+    const DAYS_IN_PERIOD = 55;
     const SECONDS_IN_DAY = 86400;
 
     public $startTimestamp;
@@ -105,7 +105,7 @@ class CurrencyPeriod extends BaseObject
     {
         if (!empty($this->startTimestamp) && !empty($this->stopTimestamp)) {
             $batch = [];
-            if ($this->startTimestamp < $this->stopTimestamp) {
+            if ($this->startTimestamp <= $this->stopTimestamp) {
                 $currentTimestamp = $this->startTimestamp;
                 while ($currentTimestamp <= $this->stopTimestamp) {
                     $this->setUrl(date('d/m/Y', $currentTimestamp));
@@ -114,12 +114,14 @@ class CurrencyPeriod extends BaseObject
                         $date = !empty($dailyResult['@attributes']['Date']) ?
                             (int) Yii::$app->formatter->asTimestamp($dailyResult['@attributes']['Date']) +
                             self::timeOffset() :
-                            $currentTimestamp;
-                        $batchDaily = !empty($dailyResult['Valute']) ?
-                            $this->toBatch($dailyResult['Valute'], $date) :
-                            [];
-                        //$this->saveBatch($batchDaily);
-                        $batch = array_merge($batch, $batchDaily);
+                            null;
+                        if(!!$date && $date === $currentTimestamp) {
+                            $batchDaily = !empty($dailyResult['Valute']) ?
+                                $this->toBatch($dailyResult['Valute'], $date) :
+                                [];
+                            //$this->saveBatch(array_values($batchDaily));
+                            $batch = array_merge($batch, $batchDaily);
+                        }
                     } catch (InvalidConfigException $e) {
                         Yii::$app->session->setFlash('danger', $e->getMessage());
                     } catch (Exception $e) {
@@ -192,7 +194,7 @@ class CurrencyPeriod extends BaseObject
      */
     public static function getTomorrowTimestamp()
     {
-        return strtotime("tomorrow") + self::SECONDS_IN_DAY;
+        return strtotime("tomorrow");
     }
 
     /**
