@@ -13,8 +13,8 @@ class Bootstrap implements BootstrapInterface
     /** @var array The rules to be used in URL management. */
 
     public $urlRules = [
-        'GET,HEAD valute\/?' => 'default/index',
-        'GET,HEAD valute/<id>/<date_start>/<date_end>\/?' => 'default/view',
+        'GET,HEAD,OPTIONS valute\/?' => 'default/index',
+        'GET,HEAD,OPTIONS valute/<id>/<date_start>/<date_end>\/?' => 'default/view',
         'POST valute' => 'default/create',
         'PUT,PATCH valute' => 'default/update',
         'DELETE valute' => 'default/delete',

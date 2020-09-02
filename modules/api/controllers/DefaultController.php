@@ -18,31 +18,43 @@ class DefaultController extends Controller
     /**
      * @inheritDoc
      */
+    public function beforeAction($action)
+    {
+        \Yii::$app->response->headers->add('Access-Control-Allow-Headers', 'Authorization,DNT,Keep-Alive,User-Agent,X-CustomHeader,X-Requested-With,If-Modified-Since,Cache-Control,Range,Content-Type');
+        return parent::beforeAction($action);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function behaviors()
     {
-        return array_merge(parent::behaviors(), [
-            // For cross-domain AJAX request
-            'corsFilter'  => [
-                'class' => \yii\filters\Cors::className(),
-                'cors'  => [
-                    'Origin' => ['*']
-                ]
-            ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'index' => ['get', 'head'],
-                    'view' => ['get', 'head'],
-                    'create' => ['post'],
-                    'update' => ['put', 'patch'],
-                    'delete' => ['delete']
-                ]
-            ],
-            'authenticator' => [
-                'class' => HttpBearerAuth::class,
+        $behaviors = parent::behaviors();
 
+        $auth = [
+            'class' => HttpBearerAuth::class,
+            'except' => 'options'
+        ];
+        // remove authentication filter
+        unset($behaviors['authenticator']);
+
+        // add CORS filter
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::class,
+            'cors' => [
+                'Origin' => ['http://prfront.local', 'http://www.dalembert.online', 'http://dalembert.online'],
+                'Access-Control-Request-Method' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+                'Access-Control-Allow-Credentials' => true,
+                'Access-Control-Max-Age'           => 3600,
             ]
-        ]);
+        ];
+
+        // re-add authentication filter
+        $behaviors['authenticator'] = $auth;
+        // avoid authentication on CORS-pre-flight requests (HTTP OPTIONS method)
+        $behaviors['authenticator']['except'] = ['options'];
+
+        return $behaviors;
     }
 
     /**
@@ -56,6 +68,7 @@ class DefaultController extends Controller
         $list = Currency::find()
             ->select(['DISTINCT(valuteId)', 'name'])
             ->asArray()->all();
+        header('Access-Control-Allow-Origin: *');
         return array_column($list, 'name', 'valuteId');
     }
 
@@ -66,6 +79,7 @@ class DefaultController extends Controller
      * @param string $date_start
      * @param string $date_end
      * @return Currency[]|array|string[]
+     * @throws \yii\base\InvalidConfigException
      */
     public function actionView($id, $date_start, $date_end)
     {
