@@ -119,7 +119,6 @@ class CurrencyPeriod extends BaseObject
                             $batchDaily = !empty($dailyResult['Valute']) ?
                                 $this->toBatch($dailyResult['Valute'], $date) :
                                 [];
-                            //$this->saveBatch(array_values($batchDaily));
                             $batch = array_merge($batch, $batchDaily);
                         }
                     } catch (InvalidConfigException $e) {

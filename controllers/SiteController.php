@@ -81,7 +81,7 @@ class SiteController extends Controller
         $stopTimestamp = CurrencyPeriod::getTomorrowTimestamp();
         if (!$startTimestamp || !$stopTimestamp) {
             $currencyPeriod = new CurrencyPeriod();
-        } elseif ($stopTimestamp > $startTimestamp) {
+        } elseif ($stopTimestamp >= $startTimestamp) {
             $currencyPeriod = new CurrencyPeriod(compact('startTimestamp', 'stopTimestamp'));
         }
         if (isset($currencyPeriod)) {
