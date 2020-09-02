@@ -4,6 +4,7 @@ namespace app\modules\api\controllers;
 
 use app\models\cbr\CurrencyPeriod;
 use app\models\Currency;
+use yii\filters\auth\HttpBearerAuth;
 use yii\filters\VerbFilter;
 use yii\rest\Controller;
 use yii\web\Response;
@@ -36,6 +37,10 @@ class DefaultController extends Controller
                     'update' => ['put', 'patch'],
                     'delete' => ['delete']
                 ]
+            ],
+            'authenticator' => [
+                'class' => HttpBearerAuth::class,
+
             ]
         ]);
     }
